@@ -4,7 +4,7 @@ main () {
     OPTIND=1
 
     BITS=4096
-    OUTPUT="ffdhe${BITS}.pem"
+    OUTPUT="ffdhe${BITS}"
     FFDHE=""
 
     while getopts "h:?:b:o:" opt
@@ -22,8 +22,8 @@ main () {
         esac
     done
 
-    OUTPUT_PEM="${OUTPUT%.pem}.pem"
-    OUTPUT_DER="${OUTPUT%.pem}.der"
+    OUTPUT_PEM="${OUTPUT}.pem"
+    OUTPUT_DER="${OUTPUT}.der"
 
     case $BITS in
         2048) FFDHE=$(ffdhe2048);;
