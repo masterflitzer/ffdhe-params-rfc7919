@@ -16,12 +16,12 @@ main () {
             b)
                 BITS=${OPTARG}
                 ;;
-            o)  OUTPUT=${OPTARG}
+            o)  OUTPUT="${OPTARG}"
                 ;;
         esac
     done
 
-    if test ${OPTIND} -eq 1
+    if test "${OPTIND}" -eq 1
     then
         help
         return 0
@@ -52,12 +52,16 @@ field1=INTEGER:0x${FFDHE}
 field2=INTEGER:0x2
 EOF
 
-    openssl asn1parse -noout -genconf asn1.cnf -out ${OUTPUT_DER}
-    openssl dhparam -noout -inform DER -in ${OUTPUT_DER} -check || return 1
-    openssl dhparam -noout -inform DER -in ${OUTPUT_DER} -text
-    openssl dhparam -inform DER -in ${OUTPUT_DER} -outform PEM -out ${OUTPUT_PEM}
+    openssl asn1parse -out "${OUTPUT_DER}" -noout -genconf asn1.cnf
+    openssl dhparam -check -in "${OUTPUT_DER}" -inform DER -out "${OUTPUT_PEM}" -outform PEM
 
-    rm asn1.cnf
+    if test "${?}" -eq 0
+    then
+        rm -f asn1.cnf
+    else
+        rm -f asn1.cnf "${OUTPUT_DER}" "${OUTPUT_PEM}"
+        return 1
+    fi
 
     cat << EOF
 
