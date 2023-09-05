@@ -3,29 +3,35 @@
 main () {
     OPTIND=1
 
-    BITS=4096
-    OUTPUT="ffdhe${BITS}"
+    BITS=""
     FFDHE=""
 
-    while getopts "h:?:b:o:" opt
+    while getopts "h:?:b:o:" OPT
     do
-        case $opt in
+        case ${OPT} in
             h|\?)
                 help
                 return 0
                 ;;
             b)
-                BITS=$OPTARG
+                BITS=${OPTARG}
                 ;;
-            o)  OUTPUT=$OPTARG
+            o)  OUTPUT=${OPTARG}
                 ;;
         esac
     done
 
+    if test ${OPTIND} -eq 1
+    then
+        help
+        return 0
+    fi
+
+    OUTPUT="ffdhe${BITS}"
     OUTPUT_PEM="${OUTPUT}.pem"
     OUTPUT_DER="${OUTPUT}.der"
 
-    case $BITS in
+    case ${BITS} in
         2048) FFDHE=$(ffdhe2048);;
         3072) FFDHE=$(ffdhe3072);;
         4096) FFDHE=$(ffdhe4096);;
@@ -33,7 +39,7 @@ main () {
         8192) FFDHE=$(ffdhe8192);;
     esac
 
-    if test "" = "$FFDHE"
+    if test "" = "${FFDHE}"
     then
         echo "An unexpected error occurred!"
         return 1
@@ -42,22 +48,22 @@ main () {
     cat << EOF > asn1.cnf
 asn1=SEQUENCE:seq_sect
 [seq_sect]
-field1=INTEGER:0x$FFDHE
+field1=INTEGER:0x${FFDHE}
 field2=INTEGER:0x2
 EOF
 
-    openssl asn1parse -noout -genconf asn1.cnf -out $OUTPUT_DER
-    openssl dhparam -noout -inform DER -in $OUTPUT_DER -check || return 1
-    openssl dhparam -noout -inform DER -in $OUTPUT_DER -text
-    openssl dhparam -inform DER -in $OUTPUT_DER -outform PEM -out $OUTPUT_PEM
+    openssl asn1parse -noout -genconf asn1.cnf -out ${OUTPUT_DER}
+    openssl dhparam -noout -inform DER -in ${OUTPUT_DER} -check || return 1
+    openssl dhparam -noout -inform DER -in ${OUTPUT_DER} -text
+    openssl dhparam -inform DER -in ${OUTPUT_DER} -outform PEM -out ${OUTPUT_PEM}
 
     rm asn1.cnf
 
     cat << EOF
 
 Finite Field Diffie-Hellman Ephemeral (FFDHE) Parameters with were generated according to RFC 7919:
-    DER format (binary):            $OUTPUT_DER
-    PEM format (base64 encoded):    $OUTPUT_PEM
+    DER format (binary):            ${OUTPUT_DER}
+    PEM format (base64 encoded):    ${OUTPUT_PEM}
 
 EOF
 }
@@ -65,7 +71,8 @@ EOF
 help () {
     cat << 'EOF'
 
-    USAGE: ./ffdhe.sh
+    USAGE: ./ffdhe.sh -h
+    USAGE: ./ffdhe.sh -b 4096
     USAGE: ./ffdhe.sh -b 4096 -o ffdhe4096.pem
 
     OPTIONS:
@@ -226,4 +233,4 @@ D68C8BB7 C5C6424C FFFFFFFF FFFFFFFF
 EOF
 }
 
-main $@
+main ${@}
